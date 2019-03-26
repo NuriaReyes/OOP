@@ -12,6 +12,18 @@ typedef enum
 	CAT_PLANS_COUNT
 } t_catPlans;
 
+typedef enum
+{
+	PLAY,
+	EAT_TRASH,
+	EAT_DOGFOOD,
+	BARK,
+	CHASE_TAIL,
+	WIGGLE_TAIL,
+
+	DOG_PLANS_COUNT
+} t_dogPlans;
+
 class Animal
 {
 private:
@@ -45,6 +57,10 @@ public:
 	void setAge(int age) { mAge = age; }
 
 	void addFavFood(const std::string &food);
+
+	virtual void printPlans() = 0;
+	virtual void requestFood(bool giveFood) = 0;
+	virtual void react(bool humanApproaching, bool isOwner) = 0;
 };
 
 void Animal::addFavFood(const std::string &food)
@@ -68,31 +84,6 @@ private:
 	int livesLeft;
 	t_catPlans mPlans;
 
-	void printPlans() 
-	{
-		switch (mPlans)
-		{
-			case SLEEP:
-				std::cout << getName() << " is sleeping \n";
-				break;
-			case EAT:
-				std::cout << getName() << " is eating \n";
-				break;
-			case MEOW:
-				std::cout << getName() << " is meowing \n";
-				break;
-			case ATTACK:
-				std::cout << getName() << " is attacking \n";
-				std::cout << getName() << " has lost a life, remaining: " << livesLeft << "\n";
-				break;
-			case NO_INTEREST:
-				std::cout << getName() << " is not interested \n";
-				break;
-			default:
-				std::cout << getName() << " is sleeping \n";
-		}
-	}
-
 public:
 	Cat(const std::string &name, int age, int foodTotal) :
 		Animal(name, age, foodTotal),
@@ -101,34 +92,62 @@ public:
 	{
 	}
 
-	void requestFood(bool giveFood)
+	virtual void printPlans()
+	{
+		switch (mPlans)
+		{
+		case SLEEP:
+			std::cout << getName() << " is sleeping \n";
+			break;
+		case EAT:
+			std::cout << getName() << " is eating \n";
+			break;
+		case MEOW:
+			std::cout << getName() << " is meowing \n";
+			break;
+		case ATTACK:
+			std::cout << getName() << " is attacking \n";
+			std::cout << getName() << " has lost a life, remaining: " << --livesLeft << "\n";
+			break;
+		case NO_INTEREST:
+			std::cout << getName() << " is not interested \n";
+			break;
+		default:
+			std::cout << getName() << " is sleeping \n";
+		}
+	}
+
+	virtual void requestFood(bool giveFood)
 	{
 		mPlans = MEOW;
 		printPlans();
 		
 		if (giveFood)
 		{
+			std::cout << "Human is giving food... \n";
 			mPlans = EAT;
 		}
 		else
 		{
+			std::cout << "Human refuses to feed... \n";
 			mPlans = MEOW;
 		}
 		printPlans();
 	}
 
-	void react(bool humanApproaching, bool isOwner)
+	virtual void react(bool humanApproaching, bool isOwner)
 	{
 		if (humanApproaching)
 		{
 			if (isOwner)
 			{
+				std::cout << "Owner is approaching... \n";
 				mPlans = NO_INTEREST;
 			}
 			else
 			{
+				std::cout << "Unknown human detected... \n";
 				mPlans = ATTACK;
-				--livesLeft;
 			}
 		}
 		else
@@ -140,20 +159,103 @@ public:
 	}
 };
 
+class Dog : public Animal
+{
+private:
+	t_dogPlans mPlans;
+
+public:
+	Dog(const std::string &name, int age, int foodTotal) :
+		Animal(name, age, foodTotal),
+		mPlans(PLAY)
+	{
+	}
+
+	virtual void printPlans()
+	{
+		switch (mPlans)
+		{
+		case PLAY:
+			std::cout << getName() << " is playing \n";
+			break;
+		case EAT_TRASH:
+			std::cout << getName() << " is eating trash \n";
+			break;
+		case EAT_DOGFOOD:
+			std::cout << getName() << " is eating dog food \n";
+			break;
+		case BARK:
+			std::cout << getName() << " is barking \n";
+			break;
+		case CHASE_TAIL:
+			std::cout << getName() << " is chasing its own tail \n";
+			break;
+		case WIGGLE_TAIL:
+			std::cout << getName() << " is wiggling its tail \n";
+			break;
+		default:
+			std::cout << getName() << " is playing \n";
+		}
+	}
+
+	virtual void requestFood(bool giveFood)
+	{
+		mPlans = BARK;
+		printPlans();
+
+		if (giveFood)
+		{
+			std::cout << "My human is the best!!! \n";
+			mPlans = EAT_DOGFOOD;
+		}
+		else
+		{
+			std::cout << "My human does not have food, no problem... \n";
+			mPlans = EAT_TRASH;
+		}
+		printPlans();
+	}
+
+	virtual void react(bool humanApproaching, bool isOwner)
+	{
+		if (humanApproaching)
+		{
+			if (isOwner)
+			{
+				std::cout << "OMG my human is home!!! \n";
+				mPlans = WIGGLE_TAIL;
+			}
+			else
+			{
+				std::cout << "I do not know that human \n";
+				mPlans = CHASE_TAIL;
+			}
+		}
+		else
+		{
+			mPlans = PLAY;
+		}
+
+		printPlans();
+	}
+};
+
+void simulateAnimal(Animal &animal, bool giveFood, bool humanApproaching, bool isOwner)
+{
+	std::cout << "Animal name: " << animal.getName() << "\n";
+	std::cout << "Animal age: " << animal.getAge() << "\n";
+
+	animal.requestFood(giveFood);
+	animal.react(humanApproaching, isOwner);
+}
+
 int main()
 {
-	Cat cat("Tom", 2, 3); //instance of Animal
+	Cat cat("Tom", 2, 1); //instance of Animal
+	simulateAnimal(cat, true, true, false);
 
-	std::cout << "Animal name: " << cat.getName() << "\n";
-	std::cout << "Animal age: " << cat.getAge() << "\n";
-
-	cat.addFavFood("Tuna");
-	cat.addFavFood("Ham");
-	cat.addFavFood("Whiskas");
-	cat.addFavFood("rat in my house");
-
-	cat.requestFood(true);
-	cat.react(true, false);
+	Dog dog("Rufus", 1, 1);
+	simulateAnimal(dog, false, true, true);
 
 	system("PAUSE");
 	return 0;
