@@ -29,6 +29,7 @@ class Animal
 private:
 	std::string mName;
 	int mAge;
+	static int mAnimalCounter;
 
 protected:
 	std::string *mFavFood;
@@ -43,6 +44,7 @@ public:
 		mFoodTotal(foodTotal)
 	{
 		mFavFood = new std::string[foodTotal]; //dynamically allocated
+		++mAnimalCounter;
 	}
 
 	~Animal()
@@ -61,6 +63,8 @@ public:
 	virtual void printPlans() = 0;
 	virtual void requestFood(bool giveFood) = 0;
 	virtual void react(bool humanApproaching, bool isOwner) = 0;
+
+	static int getAnimalsInstantiated() { return mAnimalCounter; }
 };
 
 void Animal::addFavFood(const std::string &food)
@@ -247,15 +251,24 @@ void simulateAnimal(Animal &animal, bool giveFood, bool humanApproaching, bool i
 
 	animal.requestFood(giveFood);
 	animal.react(humanApproaching, isOwner);
+
+	std::cout << "\n";
 }
+
+int Animal::mAnimalCounter(0); //Static members MUST be explicitly defined
 
 int main()
 {
-	Cat cat("Tom", 2, 1); //instance of Animal
+	Cat cat("Tom", 2, 1);
 	simulateAnimal(cat, true, true, false);
 
 	Dog dog("Rufus", 1, 1);
 	simulateAnimal(dog, false, true, true);
+
+	Cat cat2("Misifus", 3, 1);
+	simulateAnimal(cat2, false, true, true);
+
+	std::cout << "Animals instantiated: " << Animal::getAnimalsInstantiated() << "\n";
 
 	system("PAUSE");
 	return 0;
